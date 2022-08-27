@@ -1,15 +1,28 @@
 {
   "extends": "@vue/tsconfig/tsconfig.web.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "include": [
+    "env.d.ts",
+    "src/**/*.vue",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "server-dev.js"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@": ["./src"],
       "@/*": ["./src/*"]
     },
     "target": "esnext",
-    "module": "esnext"
+    "module": "esnext",
+    "moduleResolution": "Node",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM"],
+    "types": ["node"]
   },
-
   "references": [
     {
       "path": "./tsconfig.config.json"
