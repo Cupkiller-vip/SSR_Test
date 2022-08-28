@@ -1,6 +1,7 @@
 import { createApp } from "./main";
 import { renderToString } from "vue/server-renderer";
 import type { ParameterizedContext } from "koa";
+import { createRouter } from "./router";
 
 export const render = async (
   ctx: ParameterizedContext,
@@ -8,13 +9,16 @@ export const render = async (
 ): Promise<[string, string]> => {
   const { app } = createApp();
 
+  const router = createRouter();
+  app.use(router);
+  await router.push(ctx.path);
+  await router.isReady();
+
   const renderCtx: { modules?: string[] } = {};
-
   const renderedHtml = await renderToString(app, renderCtx);
-
   const preloadLinks = renderPreloadLinks(renderCtx.modules, manifest);
 
-  return [ renderedHtml, preloadLinks ];
+  return [renderedHtml, preloadLinks];
 };
 
 function renderPreloadLinks(

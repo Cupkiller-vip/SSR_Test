@@ -1,43 +1,42 @@
 import Koa from "koa";
 import koaConnect from "koa-connect";
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import fs from "fs";
+import path from "path";
 import { createServer } from "vite";
+import { fileURLToPath } from "url";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 (async () => {
   const app = new Koa();
-
   const viteServer = await createServer({
     root: process.cwd(),
     logLevel: "error",
     server: {
       middlewareMode: true,
     },
+    appType: "custom",
   });
 
   app.use(koaConnect(viteServer.middlewares));
-
-  app.use(async (ctx) => {
-    try {
-      let template = readFileSync(
-        resolve(__dirname, "index.html"),
+  try {
+    app.use(async (ctx) => {
+      let template = fs.readFileSync(
+        path.resolve(__dirname, "index.html"),
         "utf-8"
       );
       template = await viteServer.transformIndexHtml(ctx.path, template);
-      const { render } = await viteServer.ssrLoadModule("/src/entry-server.ts");
-      const { renderedHtml } = await render(ctx, {});
+      const { render } = await viteServer.ssrLoadModule("/src/server.ts");
+      const [renderedHtml] = await render(ctx, {});
       const html = template.replace("<!--app-html-->", renderedHtml);
       ctx.type = "text/html";
       ctx.body = html;
-    } catch (e) {
-      viteServer && viteServer.ssrFixStacktrace(e);
-      console.log(e.stack);
-      ctx.throw(500, e.stack);
-    }
-  });
+    });
+  } catch (e) {
+    viteServer.ssrFixStacktrace(e);
+  }
 
   app.listen(9000, () => {
-    console.log("server is listening in 9000");
+    console.log("server is listening in http://localhost:9000");
   });
 })();
